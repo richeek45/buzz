@@ -30,8 +30,24 @@ export const postRouter = createTRPCRouter({
       });
     }),
 
-  getAllPosts: protectedProcedure.query(({ ctx }) => {
-    return ctx.db.post.findMany();
+  getAllPosts: protectedProcedure.query(async ({ ctx }) => {
+    const posts = await ctx.db.post.findMany({ take: 100 });
+    const userIds = posts.map(post => post.authorId)
+
+    const users = await ctx.db.user.findMany({
+      where: {
+        id: {
+          in: userIds
+        }
+      }
+    })
+
+    console.log(users, "users")
+
+    return posts.map(post => ({
+      post,
+      author: users.find((user) => post.authorId === user.id)
+    }));
     }),
   
   getLatest: protectedProcedure.query(({ ctx }) => {
