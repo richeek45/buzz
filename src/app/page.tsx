@@ -6,10 +6,9 @@ import { api } from "~/trpc/server";
 
 export default async function Home() {
   const hello = await api.post.hello({ text: "from tRPC" });
-    const allPosts = await api.post.getAllPosts();
   const session = await getServerAuthSession();
 
-    console.log(session, allPosts, "session") 
+    console.log(session, "session") 
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
@@ -45,9 +44,13 @@ export default async function Home() {
 
 async function CrudShowcase() {
   const session = await getServerAuthSession();
+  
   if (!session?.user) return null;
 
+  const allPosts = await api.post.getAllPosts();
   const latestPost = await api.post.getLatest();
+  
+  console.log(allPosts, session)
 
   return (
     <div className="w-full max-w-xs">
