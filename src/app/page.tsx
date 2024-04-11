@@ -17,12 +17,12 @@ export default async function Home() {
       <div className="h-full w-full border-x border-slate-400 md:max-w-2xl">
         <div className="flex flex-col gap-2 p-4 border-b">
           <div className="flex flex-col items-start justify-center gap-4">
-            {/* <Link
+            <Link
               href={session ? "/api/auth/signout" : "/api/auth/signin"}
               className="rounded-full bg-white/10 px-10 py-2 font-semibold no-underline transition hover:bg-white/20"
             >
               {session ? "Sign out" : "Sign in"}
-            </Link> */}
+            </Link>
             {session && <PostWrapper />}
           </div>
         </div>
