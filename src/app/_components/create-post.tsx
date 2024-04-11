@@ -1,5 +1,7 @@
 "use client";
 
+import { SessionProvider, useSession } from "next-auth/react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -7,37 +9,55 @@ import { api } from "~/trpc/react";
 
 export function CreatePost() {
   const router = useRouter();
-  const [name, setName] = useState("");
+  const [content, setContent] = useState("");
+  const utils = api.useUtils();
+
+  const { data } = useSession()
+  const user = data?.user
+
+  console.log(user, "data.......................")
 
   const createPost = api.post.create.useMutation({
     onSuccess: () => {
       router.refresh();
-      setName("");
+      setContent("");
+      void utils.post.getAllPosts.invalidate();
     },
   });
 
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        createPost.mutate({ name });
-      }}
-      className="flex flex-col gap-2"
+    
+  <div className="flex w-full gap-3">
+    {user?.image && <Image 
+      src={user.image} 
+      alt="Profile Image" 
+      className="h-14 w-14 rounded-full" 
+      width={56} 
+      height={56} 
+    />}
+    <input 
+      type="text" 
+      placeholder="Type some emojis!" 
+      className="grow bg-transparent outline-none" 
+      value={content}
+      onChange={(e) => setContent(e.target.value)}
+    />
+    <button
+      type="submit"
+      className="rounded-full bg-white/10 px-10 py-3 font-semibold transition hover:bg-white/20"
+      disabled={createPost.isPending}
+      onClick={() => createPost.mutate({ name: "Richeek", content })}
     >
-      <input
-        type="text"
-        placeholder="Title"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        className="w-full rounded-full px-4 py-2 text-black"
-      />
-      <button
-        type="submit"
-        className="rounded-full bg-white/10 px-10 py-3 font-semibold transition hover:bg-white/20"
-        disabled={createPost.isPending}
-      >
-        {createPost.isPending ? "Submitting..." : "Submit"}
-      </button>
-    </form>
+      {createPost.isPending ? "saving..." : "Post"}
+    </button>
+  </div>
   );
+}
+
+export const PostWrapper = () => {
+  return (
+    <SessionProvider>
+      <CreatePost />
+    </SessionProvider>
+  )
 }
