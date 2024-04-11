@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { api } from "~/trpc/react";
+import { LoadingSpinner } from "./loading";
 
 export function CreatePost() {
   const router = useRouter();
@@ -48,7 +49,7 @@ export function CreatePost() {
       disabled={createPost.isPending}
       onClick={() => createPost.mutate({ name: "Richeek", content })}
     >
-      {createPost.isPending ? "saving..." : "Post"}
+      {createPost.isPending ? <LoadingSpinner /> : "Post"}
     </button>
   </div>
   );
