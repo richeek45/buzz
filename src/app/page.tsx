@@ -1,66 +1,78 @@
-import Link from "next/link";
-
-import { CreatePost } from "~/app/_components/create-post";
+import { PostWrapper } from "~/app/_components/create-post";
 import { getServerAuthSession } from "~/server/auth";
-import { api } from "~/trpc/server";
+import relativeTime from "dayjs/plugin/relativeTime";
+import dayjs from "dayjs";
+import Image from "next/image";
+import Link from "next/link";
+import { type RouterOutputs, api } from "~/trpc/server";
+
+dayjs.extend(relativeTime);
 
 export default async function Home() {
-  const hello = await api.post.hello({ text: "from tRPC" });
   const session = await getServerAuthSession();
 
-    console.log(session, "session") 
-
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-      <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
-        <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-          Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
-        </h1>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-        </div>
-        <div className="flex flex-col items-center gap-2">
-          <p className="text-2xl text-white">
-            {hello ? hello.greeting : "Loading tRPC query..."}
-          </p>
 
-          <div className="flex flex-col items-center justify-center gap-4">
-            <p className="text-center text-2xl text-white">
-              {session && <span>Logged in as {session.user?.name}</span>}
-            </p>
-            <Link
+    <main className="flex h-screen flex-col items-center justify-center text-white">
+      <div className="h-full w-full border-x border-slate-400 md:max-w-2xl">
+        <div className="flex flex-col gap-2 p-4 border-b">
+          <div className="flex flex-col items-start justify-center gap-4">
+            {/* <Link
               href={session ? "/api/auth/signout" : "/api/auth/signin"}
-              className="rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20"
+              className="rounded-full bg-white/10 px-10 py-2 font-semibold no-underline transition hover:bg-white/20"
             >
               {session ? "Sign out" : "Sign in"}
-            </Link>
+            </Link> */}
+            {session && <PostWrapper />}
           </div>
         </div>
-
-        <CrudShowcase />
+        <PostListView />
       </div>
     </main>
   );
 }
 
-async function CrudShowcase() {
+
+
+type PostWithUser = RouterOutputs["post"]["getAllPosts"][number]
+
+async function PostView(props: PostWithUser) {
+  const { post, author } = props;
+
+  return (<div className="flex border-b border-slate-400 p-4">
+    <Image 
+      alt={`@${author.name}'s profile picture`} 
+      src={author.image!} 
+      className="w-14 h-14 rounded-full" 
+      width={56} 
+      height={56} 
+    />
+    <div className="flex flex-col">
+      <div className="flex text-slate-400 gap-2">
+        <span>{`@${author.name}`}</span>
+        <span className="font-light">{`∙ ${dayjs(post.createdAt).fromNow()}`}</span>
+      </div>
+      {/* <span>{post.name}</span> */}
+      <div className="flex text-slate-400">
+        <span>{post.content}</span>
+      </div>
+      <div></div>
+    </div>
+  </div>)
+}
+
+
+async function PostListView() {
   const session = await getServerAuthSession();
-  
   if (!session?.user) return null;
 
-  const allPosts = await api.post.getAllPosts();
-  const latestPost = await api.post.getLatest();
-  
-  console.log(allPosts, session)
+  const allPosts = await api.post.getAllPosts()
 
   return (
-    <div className="w-full max-w-xs">
-      {latestPost ? (
-        <p className="truncate">Your most recent post: {latestPost.name} {latestPost.content}</p>
-      ) : (
-        <p>You have no posts yet.</p>
-      )}
-
-      <CreatePost />
+    <div className="w-full flex flex-col ">
+      {allPosts.map((post) => (
+        <PostView key={post.post.id} {...post} />
+      ))}
     </div>
   );
 }
