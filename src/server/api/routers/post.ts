@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import {
@@ -16,7 +17,7 @@ export const postRouter = createTRPCRouter({
     }),
 
   create: protectedProcedure
-    .input(z.object({ name: z.string().min(1) }))
+    .input(z.object({ name: z.string().min(1), content: z.string().emoji().min(1).max(280) }))
     .mutation(async ({ ctx, input }) => {
       // simulate a slow db call
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -24,7 +25,7 @@ export const postRouter = createTRPCRouter({
       return ctx.db.post.create({
         data: {
           name: input.name,
-          content: "new content",
+          content: input.content,
           createdBy: { connect: { id: ctx.session.user.id } },
         },
       });
@@ -42,12 +43,23 @@ export const postRouter = createTRPCRouter({
       }
     })
 
-    console.log(users, "users")
+    return posts.map(post => {
+      const author = users.find((user) => post.authorId === user.id);
+      if (!author?.name) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Author for post not found'
+        })
+      }
 
-    return posts.map(post => ({
-      post,
-      author: users.find((user) => post.authorId === user.id)
-    }));
+      return ({
+        post,
+        author: {
+          ...author,
+          name: author.name
+        }
+      })
+    });
     }),
   
   getLatest: protectedProcedure.query(({ ctx }) => {
