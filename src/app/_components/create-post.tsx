@@ -8,6 +8,8 @@ import { useState } from "react";
 import { api } from "~/trpc/react";
 import { LoadingSpinner } from "./loading";
 
+import toast, { Toaster } from 'react-hot-toast';
+
 export function CreatePost() {
   const router = useRouter();
   const [content, setContent] = useState("");
@@ -24,7 +26,17 @@ export function CreatePost() {
       setContent("");
       void utils.post.getAllPosts.invalidate();
     },
+    onError: (error) => {
+      const errorMessage = error.data?.zodError?.fieldErrors.content![0];
+      console.log(error.data?.zodError?.fieldErrors.content![0], "Error.........");
+      if (errorMessage) {
+        toast.error(errorMessage);
+      } else {
+        toast.error("Failed to post! Please try again later!");
+      }
+    }
   });
+
 
   return (
     
@@ -41,12 +53,18 @@ export function CreatePost() {
       placeholder="Type some emojis!" 
       className="grow bg-transparent outline-none" 
       value={content}
+      onKeyDown={(e) => {
+        e.preventDefault();
+        if ((e.key === "Enter")) {
+          createPost.mutate({ name: "Richeek", content })
+        }
+      }}
       onChange={(e) => setContent(e.target.value)}
     />
     <button
-      type="submit"
+      type="button"
       className="rounded-full bg-white/10 px-10 py-3 font-semibold transition hover:bg-white/20"
-      disabled={createPost.isPending}
+      disabled={createPost.isPending || content === ""}
       onClick={() => createPost.mutate({ name: "Richeek", content })}
     >
       {createPost.isPending ? <LoadingSpinner /> : "Post"}
@@ -58,6 +76,7 @@ export function CreatePost() {
 export const PostWrapper = () => {
   return (
     <SessionProvider>
+      <Toaster />
       <CreatePost />
     </SessionProvider>
   )
