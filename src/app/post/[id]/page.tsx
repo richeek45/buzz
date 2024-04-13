@@ -1,16 +1,15 @@
-import { PostWrapper } from "~/app/_components/create-post";
 import { getServerAuthSession } from "~/server/auth";
 import relativeTime from "dayjs/plugin/relativeTime";
 import dayjs from "dayjs";
 import Link from "next/link";
-import { api } from "~/trpc/react";
+import { api } from "~/trpc/server";
 
 dayjs.extend(relativeTime);
 
 export default async function SinglePostPage() {
   const session = await getServerAuthSession();
 
-  const { data } = api.profile.getUserByUsername.useQuery({ name: "Richeek"});
+  const data = await api.profile.getUserByUsername({ name: "richeek"});
 
   console.log(data, " ...data...");
 
@@ -25,7 +24,6 @@ export default async function SinglePostPage() {
           >
             {session ? "Sign out" : "Sign in"}
           </Link>
-          {/* {session && <PostWrapper />} */}
         </div>
           Post View
       </div>
