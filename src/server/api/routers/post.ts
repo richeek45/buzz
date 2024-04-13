@@ -58,18 +58,27 @@ export const postRouter = createTRPCRouter({
   getPostById: publicProcedure
   .input(z.object({ id: z.number() }))
   .query(async ({ ctx, input}) => {
-    const post = await ctx.db.post.findFirst({ where: { id: input.id }})
-    const author = await ctx.db.user.findFirst({ where: { id: post?.authorId }})
+    const postData = await ctx.db.post.findFirst({ where: { id: input.id }, include: { createdBy: true } })
 
-    if(!post || !author?.name) {
+    if(!postData || !postData.createdBy.name) {
       throw new TRPCError({ code: "NOT_FOUND", message: "post not found!"});
     }
 
     return {
-      post,
+      post: {
+        id: postData.id,
+        name: postData.name,
+        content: postData.content,
+        authorId: postData.authorId,
+        createdAt: postData.createdAt,
+        updatedAt: postData.updatedAt
+      },
       author: {
-        ...author,
-        name: author.name
+        name: postData.createdBy.name,
+        id: postData.createdBy.id,
+        email: postData.createdBy.email, 
+        emailVerified: postData.createdBy.emailVerified, 
+        image: postData.createdBy.image
       }
     };
   }),
