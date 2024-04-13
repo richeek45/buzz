@@ -54,6 +54,25 @@ export const postRouter = createTRPCRouter({
         },
       });
     }),
+  
+  getPostById: publicProcedure
+  .input(z.object({ id: z.number() }))
+  .query(async ({ ctx, input}) => {
+    const post = await ctx.db.post.findFirst({ where: { id: input.id }})
+    const author = await ctx.db.user.findFirst({ where: { id: post?.authorId }})
+
+    if(!post || !author?.name) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "post not found!"});
+    }
+
+    return {
+      post,
+      author: {
+        ...author,
+        name: author.name
+      }
+    };
+  }),
 
   getPostsByUserId: publicProcedure.input(z.object({ userId: z.string()})).query(async ({ ctx, input}) => {
     const userWithPosts = await ctx.db.user.findFirst({ where: {id: input.userId }, include: { posts: true }})
