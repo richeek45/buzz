@@ -11,8 +11,6 @@ export default async function SinglePostPage() {
 
   const data = await api.profile.getUserByUsername({ name: "richeek"});
 
-  console.log(data, " ...data...");
-
   return (
 
     <main className="flex h-screen flex-col items-center justify-center text-white">
