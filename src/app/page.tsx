@@ -47,8 +47,12 @@ async function PostView(props: PostWithUser) {
     />
     <div className="flex flex-col mx-4">
       <div className="flex text-slate-400 gap-2">
-        <span>{`@${author.name}`}</span>
-        <span className="font-light">{`∙ ${dayjs(post.createdAt).fromNow()}`}</span>
+        <Link href={`@${author.name}`}>
+          <span>{`@${author.name}`}</span>
+        </Link>
+        <Link href={`/post/${post.id}`}>
+          <span className="font-light">{`∙ ${dayjs(post.createdAt).fromNow()}`}</span>
+        </Link>
       </div>
       {/* <span>{post.name}</span> */}
       <div className="flex text-slate-400">
@@ -59,7 +63,7 @@ async function PostView(props: PostWithUser) {
 }
 
 
-async function PostListView() {
+export async function PostListView() {
   const session = await getServerAuthSession();
   if (!session?.user) return null;
 
