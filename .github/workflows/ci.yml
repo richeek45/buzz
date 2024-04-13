@@ -22,7 +22,7 @@ jobs:
         run: npm install
 
       - name: Run TypeScript checking
-        run: npm run type-check  # Adjust this command based on your TypeScript setup
+        run: npm run typecheck  # Adjust this command based on your TypeScript setup
 
       - name: Build
         run: npm run build  # Adjust this command based on your project setup
