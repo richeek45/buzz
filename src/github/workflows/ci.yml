@@ -1,0 +1,34 @@
+name: CI
+
+on: [push, pull_request]
+   
+env: 
+  DATABASE_URL: "https://fake.com"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'  # Change this to your preferred Node.js version
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run TypeScript checking
+        run: npm run type-check  # Adjust this command based on your TypeScript setup
+
+      - name: Build
+        run: npm run build  # Adjust this command based on your project setup
+
+      - name: Run tests
+        run: npm test  # Adjust this command based on your testing framework
+
+      - name: Run linting
+        run: npm run lint  # Adjust this command based on your linting setup
