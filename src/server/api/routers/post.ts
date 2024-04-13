@@ -55,8 +55,39 @@ export const postRouter = createTRPCRouter({
       });
     }),
 
+  getPostsByUserId: publicProcedure.input(z.object({ userId: z.string()})).query(async ({ ctx, input}) => {
+    const userWithPosts = await ctx.db.user.findFirst({ where: {id: input.userId }, include: { posts: true }})
+
+    if (!userWithPosts?.name) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "user with post not found!" })
+    }
+
+    const author = {
+      id: userWithPosts?.id,
+      name: userWithPosts.name,
+      email: userWithPosts?.email,
+      emailVerified: userWithPosts?.emailVerified,
+      image: userWithPosts?.image
+    }
+    const postWithUserInfo = userWithPosts?.posts.map(post => {
+      return ({
+        post,
+        author: {
+          ...author,
+          id: userWithPosts.id,
+          email: userWithPosts.email,
+        }
+      })
+    })
+
+    return postWithUserInfo;
+  }),
+
   getAllPosts: protectedProcedure.query(async ({ ctx }) => {
-    const posts = await ctx.db.post.findMany({ take: 100 });
+    const posts = await ctx.db.post.findMany({ 
+      take: 100,
+      orderBy: [{ createdAt: "desc" }] 
+    });
     const userIds = posts.map(post => post.authorId)
 
     const users = await ctx.db.user.findMany({
@@ -64,7 +95,7 @@ export const postRouter = createTRPCRouter({
         id: {
           in: userIds
         }
-      }
+      },
     })
 
     return posts.map(post => {
