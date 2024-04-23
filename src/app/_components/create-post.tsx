@@ -37,6 +37,7 @@ export function CreatePost() {
     }
   });
 
+  if (!data) return;
 
   return (
     
@@ -54,9 +55,8 @@ export function CreatePost() {
       className="grow bg-transparent outline-none" 
       value={content}
       onKeyDown={(e) => {
-        e.preventDefault();
         if ((e.key === "Enter")) {
-          createPost.mutate({ name: "Richeek", content })
+          createPost.mutate({ name: data.user.name, content })
         }
       }}
       onChange={(e) => setContent(e.target.value)}
@@ -65,7 +65,7 @@ export function CreatePost() {
       type="button"
       className="rounded-full bg-white/10 px-10 py-3 font-semibold transition hover:bg-white/20"
       disabled={createPost.isPending || content === ""}
-      onClick={() => createPost.mutate({ name: "Richeek", content })}
+      onClick={() => createPost.mutate({ name: data.user.name, content })}
     >
       {createPost.isPending ? <LoadingSpinner /> : "Post"}
     </button>
